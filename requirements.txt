@@ -1,0 +1,8 @@
+PyMuPDF
+pdfplumber
+loguru
+spacy
+openai
+python-dotenv
+pillow
+pytesseract
