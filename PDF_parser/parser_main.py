@@ -1,5 +1,5 @@
+import argparse
 import os
-import json
 import sys
 from loguru import logger
 
@@ -24,6 +24,7 @@ def parse_pdf(pdf_path: str, save: bool = True) -> dict:
 
     if save:
         output_path = save_json(result, pdf_path)
+        result["output_path"] = output_path
         logger.success(f"JSON sauvegardé : {output_path}")
 
     logger.success(f"=== Parsing terminé : {result['page_count']} pages ===")
@@ -35,9 +36,27 @@ def parse_directory(input_dir: str) -> list:
     return [parse_pdf(os.path.join(input_dir, f)) for f in pdfs]
 
 
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Parse un PDF et exporte le résultat en JSON")
+    parser.add_argument("pdf_path", help="Chemin vers le PDF à parser")
+    parser.add_argument(
+        "--print-json",
+        action="store_true",
+        help="Affiche le JSON complet dans la console (désactivé par défaut)",
+    )
+    return parser
+
+
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage : python parser_main.py document.pdf")
+    args = build_parser().parse_args()
+    out = parse_pdf(args.pdf_path)
+
+    if not out:
         sys.exit(1)
-    out = parse_pdf(sys.argv[1])
-    print(json.dumps(out, indent=2, ensure_ascii=False))
+
+    if args.print_json:
+        import json
+
+        print(json.dumps(out, indent=2, ensure_ascii=False))
+    else:
+        print(f"Terminé. Fichier de sortie : {out.get('output_path', 'non sauvegardé')}")
